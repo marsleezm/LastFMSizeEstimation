@@ -1,0 +1,103 @@
+import depend
+
+sumDW = 0.0
+sum1W = 0.0
+sum1WW = 0.0
+sum1EWW = 0.0
+sum1JW = 0.0
+prevIDegree = 0.0
+count = 0
+
+def inducedEdge(sampleList, friendList, breakDep, theta) :
+   print "+++Induced Edge+++"
+   noDependList = []
+   noDependFriendList = []
+   if breakDep == 0 :
+       noDependList = depend.thinningsample(sampleList, theta,0)
+       noDependFriendList = depend.thinningfriend(friendList, theta,0)
+       print "***Simple Thinning***"
+       print "Estimated Size of nodes :" + str(getListResult(noDependList, noDependFriendList))
+   elif breakDep == 1 :
+       totalNodeSize = 0
+       for i in range(0,theta-1) :
+           noDependList = depend.thinningsample(sampleList,theta,i)
+	   noDependFriendList = depend.thinningfriend(friendList, theta,0)
+           totalNodeSize = totalNodeSize + getListResult(noDependList, noDependFriendList)
+           print "***Shift Thinning***"
+           print "Estimated Size of nodes :" + str(int(totalNodeSize/theta))
+   elif breakDep == 2 :
+	print "***Safety Margin***"
+        print "Estimated Size of nodes :" + str(int(safetymarginIE(sampleList, friendList, theta)))
+       
+   else :
+       print "Error in breaking dependence type!"
+
+def getListResult(noDependList, noDependFriendList) :
+   global sum1JW
+   for [name,degree] in noDependList :
+      sum1JW = sum1JW + 1.0/int(degree)
+   i = 0
+   while len(noDependList) > 1 :
+      name = noDependList[0][0]
+      degree = int(noDependList[0][1])
+      del noDependList[0]
+      addNode(noDependList[0][0], int(noDependList[0][1]), noDependList, noDependFriendList[i])
+      i = i + 1
+   
+   print "++++++"
+   print noDependFriendList[1]
+   return getResult()
+
+def addNode(node, degree, sampleList, friendList):
+    global sumDW
+    global sum1W
+    global sum1WW
+    global sum1EWW
+    global sum1JW
+    global prevIDegree
+    global count
+    sum1EW = 0
+
+    invDegree = 1.0/degree
+    sum1JW = sum1JW - invDegree
+    sumDW = sumDW + 1
+    sum1W = sum1W + invDegree
+    sum1WW = sum1WW + invDegree * sum1JW 
+    #print str(len(sampleList)) + "sample"
+    for [samplename,sampledegree] in sampleList :
+     #print str(len(friendList)) + "friend"
+     for friend in friendList :
+      if samplename == friend :
+        sum1EW = sum1EW + 1.0/int(sampledegree)
+	print str(sum1EWW) + " " + sampledegree + " " + friend + " " + str(invDegree)
+        #count = count + 1
+        #print count
+    sum1EWW = sum1EWW + invDegree * sum1EW
+
+    #sum1EWW = sum1EWW + 1.0/degree * prevIDegree
+
+    #prevIDegree = invDegree
+
+def getResult() :
+    global sumDW
+    global sum1W
+    global sum1WW
+    global sum1EWW
+    print "sumDW " + str(sumDW)
+    print "sum1W " + str(sum1W)
+    print "sum1WW " + str(sum1WW)
+    print "sum1EWW " + str(sum1EWW)
+    return int(sumDW * sum1WW / sum1W / sum1EWW + 1)
+
+def safetymarginIE(sampleList, friendList, hops):
+ mysumDW1 = 0.0
+ mysum1W1 = 0.0
+ length = len(sampleList)
+ for i in range(0, length - 1) :
+  for j in range(0, length - 1) :
+   if abs(i - j) > hops :
+    if sampleList[j][0] in friendList[i] :
+     mysum1W1 = mysum1W1 + 1 / float(sampleList[i][1])
+    mysumDW1 = mysumDW1 + float(sampleList[i][1]) / float(sampleList[j][1])
+
+ return mysumDW1 / mysum1W1

@@ -1,0 +1,66 @@
+#!/usr/bin/python
+import re
+
+def thinningsample(sampleList, theta, offset):
+ newsampleList = []
+
+ i = 0
+ j = 0
+ for [name, degree] in sampleList :
+  if i % theta == offset :
+   newsampleList.append([])
+   newsampleList[j].append(name)
+   newsampleList[j].append(degree)
+   j = j + 1
+  i = i + 1
+ return newsampleList
+
+def thinningfriend(friendList, theta, offset):
+ newfriendList = []
+
+ i = 0
+ j = 0
+ for line in friendList :
+  if i % theta == offset :
+   newfriendList.append([])
+   for name in line :
+    newfriendList[j].append(name)
+   j = j + 1
+  i = i + 1
+ return newfriendList
+
+def safetymarginIE(sampleList, friendList, hops):
+ sumDW1 = 0.0
+ sum1W1 = 0.0
+ for [namei, degreei] in sampleList :
+  for [namej, degreej] in sampleList :
+   if abs(sampleList.index([[namei, degreei]]) - sampleList.index([[namej, degreej]])) > hops :
+    sumDW1 = sumDW1 + degreei / degreej
+ 
+ for [namei, degreei] in sampleList :
+  for [namej, degreej] in sampleList :
+   if abs(sampleList.index([[namei, degreei]]) - sampleList.index([[namej, degreej]])) > hops :
+    if namej in friendList[sampleList.index([[namei, degreei]])] :
+     sum1W1 = sum1W1 + 1 / degreei
+
+ return sumDW1 / sum1W1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
